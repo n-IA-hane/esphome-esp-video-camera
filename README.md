@@ -1,8 +1,8 @@
-# esp_video_camera — ESP32-P4 MIPI-CSI camera platform for ESPHome
+# esp_video_camera --- ESP32-P4 MIPI-CSI camera platform for ESPHome
 
 An ESPHome external component that turns an ESP32-P4 with a MIPI-CSI sensor into
 a **native ESPHome `camera` entity**: Home Assistant discovers it as a real
-camera, snapshots work, and `web_server` serves an MJPEG stream — no go2rtc, no
+camera, snapshots work, and `web_server` serves an MJPEG stream --- no go2rtc, no
 external RTSP bridge, no LVGL display required.
 
 Frames are produced entirely in hardware: the MIPI-CSI sensor feeds the P4 ISP
@@ -11,7 +11,7 @@ them. A USB-UVC camera that already emits MJPEG can be used as an alternative
 source.
 
 Everything runs on Espressif's `esp_video` (V4L2) stack, pulled at build time
-through the IDF component manager — nothing is vendored.
+through the IDF component manager --- nothing is vendored.
 
 ## Credit
 
@@ -39,7 +39,7 @@ boot, and once past that it hard-locked the board. Six changes:
 device, not just the OUTPUT side. In `jpeg_video_set_format()`, a `width < MIN`
 or `height < MIN` returns `EINVAL`. The original code zeroed the `v4l2_format`
 struct for the CAPTURE side and only set `pixelformat = V4L2_PIX_FMT_JPEG`,
-i.e. it asked for a 0x0 JPEG — so every boot ended in:
+i.e. it asked for a 0x0 JPEG --- so every boot ended in:
 
 ```
 JPEG CAPTURE S_FMT failed: Invalid argument
@@ -50,15 +50,15 @@ Fix: propagate the negotiated capture resolution to the CAPTURE format too
 
 ### 2. Capture moved into its own FreeRTOS task
 
-The original ran the whole capture cycle — including **blocking** `VIDIOC_DQBUF`
-ioctls on the JPEG M2M fd — directly inside ESPHome's `loop()`. Any stall over
+The original ran the whole capture cycle --- including **blocking** `VIDIOC_DQBUF`
+ioctls on the JPEG M2M fd --- directly inside ESPHome's `loop()`. Any stall over
 ~5 s trips the task watchdog on `loopTask` and reboots the board.
 
 This is not a corner case: Home Assistant polls the camera entity by itself, so
 the board went into a reboot loop roughly every 40 s with no user interaction.
 
 Fix: a dedicated task (`esp_video_cap`, 8 KB internal stack, priority 3, pinned
-to CPU0 — `loopTask` runs on CPU1) owns the pipeline and all blocking ioctls. It
+to CPU0 --- `loopTask` runs on CPU1) owns the pipeline and all blocking ioctls. It
 copies the finished JPEG into PSRAM and parks it in a mutex-protected pending
 slot; `loop()` only picks the frame up and hands it to the listeners, because
 the ESPHome API callbacks are not thread-safe. This mirrors what the core
@@ -68,13 +68,13 @@ the ESPHome API callbacks are not thread-safe. This mirrors what the core
 
 In `esp_video` 2.2.0 the hardware encode is **lazy**. `esp_video_recv_element()`
 notifies `M2M_TRIGGER` (which is what actually starts `m2m_process`) only for
-`type == V4L2_BUF_TYPE_VIDEO_CAPTURE` — see `jpeg_video_notify()`. The original
+`type == V4L2_BUF_TYPE_VIDEO_CAPTURE` --- see `jpeg_video_notify()`. The original
 code dequeued the OUTPUT buffer first. That never kicks the encoder off, so the
 call blocks on `ready_sem` forever. This was the real source of the watchdog
 hang in (2); moving capture to a task only turned a reboot into a silent stall.
 
 Fix: `DQBUF(CAPTURE)` first (starts the encode and waits for it), then
-`DQBUF(OUTPUT)` to reclaim the input buffer — which returns immediately, since
+`DQBUF(OUTPUT)` to reclaim the input buffer --- which returns immediately, since
 by then the encoder is done with it.
 
 ### 4. Runtime controls go through `VIDIOC_S_EXT_CTRLS`, never `VIDIOC_S_CTRL`
@@ -85,8 +85,8 @@ from the original PR **never took effect**: it is written once with
 `VIDIOC_S_CTRL` in `start_jpeg_pipeline_()` and the return value is not checked,
 so the encoder silently kept its default quality.
 
-Fix: every control write — the static `jpeg_quality:` option and the runtime
-controls alike — goes through `VIDIOC_S_EXT_CTRLS` with a properly filled
+Fix: every control write --- the static `jpeg_quality:` option and the runtime
+controls alike --- goes through `VIDIOC_S_EXT_CTRLS` with a properly filled
 `v4l2_ext_controls` (`v4l2_set_ext_ctrl()`), and the result is logged. This is
 also what made the runtime controls below possible.
 
@@ -127,8 +127,8 @@ restarts streaming without reallocating them or polling the main loop.
 * ESP32-P4 with a MIPI-CSI sensor supported by `esp_cam_sensor`
   (auto-detected: SC202CS, OV5647, SC2336), or a USB-UVC camera.
 * External PSRAM for the JPEG handoff copy.
-* ESP-IDF **≥ 5.4** (required by `esp_video` 2.4.1).
-* **The `esp-idf` toolchain — this is mandatory**, see below.
+* ESP-IDF **-�� 5.4** (required by `esp_video` 2.4.1).
+* **The `esp-idf` toolchain --- this is mandatory**, see below.
 
 ### `esp32: toolchain: esp-idf` is required
 
@@ -141,15 +141,15 @@ still validates, and the build then fails during code generation with:
 esp_video_camera requires the esp-idf framework.
 ```
 
-* **ESPHome 2026.7.0 and later** — `esp-idf` is the default toolchain; nothing
+* **ESPHome 2026.7.0 and later** --- `esp-idf` is the default toolchain; nothing
   to do.
-* **ESPHome 2026.6.x** — the option exists but defaults to `platformio`. Set it
+* **ESPHome 2026.6.x** --- the option exists but defaults to `platformio`. Set it
   explicitly:
 
 ```yaml
 esp32:
   variant: esp32p4
-  toolchain: esp-idf   # REQUIRED on 2026.6.x — default there is platformio
+  toolchain: esp-idf   # REQUIRED on 2026.6.x --- default there is platformio
   framework:
     type: esp-idf
 ```
@@ -164,9 +164,9 @@ Note that the first build with this toolchain downloads the full IDF toolchain
 ```yaml
 external_components:
   # This component.
-  - source: github://Psix-anp/esphome-esp-video-camera
+  - source: github://n-IA-hane/esphome-esp-video-camera@v2026.9.0
     components: [esp_video_camera]
-  # The base `camera` platform is not in ESPHome yet either — it comes from the
+  # The base `camera` platform is not in ESPHome yet either --- it comes from the
   # same (still unmerged) pull request.
   - source: github://pr#16944
     components: [camera]
@@ -178,7 +178,7 @@ esp32:
   framework:
     type: esp-idf
 
-# SCCB (sensor control) rides on a normal ESPHome I2C bus — no hardcoded pins.
+# SCCB (sensor control) rides on a normal ESPHome I2C bus --- no hardcoded pins.
 i2c:
   - id: cam_i2c
     sda: GPIO7
@@ -189,7 +189,7 @@ esp_video_camera:
   id: my_camera
   name: "Camera"
   i2c_id: cam_i2c
-  device: jpeg        # hardware JPEG encoder (/dev/video10) — MIPI-CSI sensors
+  device: jpeg        # hardware JPEG encoder (/dev/video10) --- MIPI-CSI sensors
   resolution: "auto"  # "auto" = the sensor's native/default mode
   jpeg_quality: 10    # 1..63
   rotation: 0         # 0/90/180/270 degrees clockwise, hardware PPA
@@ -228,7 +228,7 @@ in RGB565 and do not add a software decode/re-encode step.
 ## Runtime controls
 
 Beyond the static YAML options, five settings can be changed at runtime from
-lambdas — so they can be exposed to Home Assistant as `number` / `switch`
+lambdas --- so they can be exposed to Home Assistant as `number` / `switch`
 entities. The setters only store the value into an atomic field; the capture
 task applies it between frames on the live file descriptors, so no ioctl is ever
 issued from a foreign thread.
@@ -310,7 +310,7 @@ linger fixes are for:
 
 ## Sensor modes
 
-`resolution:` is best-effort — `VIDIOC_S_FMT` can only pick from the modes the
+`resolution:` is best-effort --- `VIDIOC_S_FMT` can only pick from the modes the
 sensor driver was **compiled** with. Which modes exist is a Kconfig decision in
 `esp_cam_sensor`, so unusual resolutions are selected through
 `sdkconfig_options`, not through YAML.
@@ -325,7 +325,7 @@ For the **OV5647** the available MIPI 2-lane modes (24 MHz input) are:
 | 1920x1080 @30 fps, RAW10 | `RAW10_1920X1080_30FPS` | no |
 | 1280x960 binning @45 fps, RAW10 | `RAW10_1280X960_BINNING_45FPS` | no |
 
-There is **no 1280x720 mode** — `resolution: 720P` will silently fall back to
+There is **no 1280x720 mode** --- `resolution: 720P` will silently fall back to
 whatever the sensor negotiates. With `resolution: "auto"` you get 800x800.
 
 To use the 1280x960 2x2-binning mode (better low-light sensitivity, which is why
@@ -347,7 +347,7 @@ resolution is read back and logged at startup:
 [esp_video_camera] Capture resolution: 1280x960
 ```
 
-The same pattern applies to the other sensors — check
+The same pattern applies to the other sensors --- check
 `managed_components/espressif__esp_cam_sensor/sensors/<sensor>/Kconfig.<sensor>`
 in your build directory for the exact symbols.
 
@@ -400,17 +400,17 @@ can be registered.
 Board-specific notes, which generalise reasonably well:
 
 * **SCCB shares the general-purpose I2C bus.** On this board the CSI connector's
-  `ESP_I2C_SDA`/`ESP_I2C_SCL` are GPIO7/GPIO8 — the same bus as the audio codec.
+  `ESP_I2C_SDA`/`ESP_I2C_SCL` are GPIO7/GPIO8 --- the same bus as the audio codec.
   The OV5647 answers at SCCB address 0x36 and does not collide with the ES8311
   codec at 0x18. One `i2c:` bus, passed via `i2c_id`, serves both.
-* **No XCLK line on the CSI connector** — the OV5647 module is clocked by its own
+* **No XCLK line on the CSI connector** --- the OV5647 module is clocked by its own
   crystal, so `enable_xclk: false` and no `xclk_pin` is needed. Boards that route
   MCLK to the sensor need `enable_xclk: true`.
-* **Reset is done in hardware** — `CSI_IO0` sits on a 10 K pull-up to 3V3, so the
+* **Reset is done in hardware** --- `CSI_IO0` sits on a 10 K pull-up to 3V3, so the
   hardcoded `reset_pin = -1` is fine.
 
 Verified working: sensor detected over SCCB, IPA tuning loaded, ISP streaming
-(AE converging), JPEG frames delivered over the ESPHome API (e.g. 800x800 →
+(AE converging), JPEG frames delivered over the ESPHome API (e.g. 800x800 -��
 ~21.7 KB), camera entity visible in Home Assistant, no watchdog resets.
 
 The current dependency graph uses the published `esp_video` 2.4.1 component,
@@ -433,16 +433,16 @@ The current dependency graph uses the published `esp_video` 2.4.1 component,
   compiled. Raw CSI integrations do not install that stub and can resolve the
   real codec from their separate encoder component.
 * **`resolution:` cannot conjure modes** the sensor driver was not compiled with
-  — see "Sensor modes".
+  --- see "Sensor modes".
 * **Only three MIPI sensors are auto-detected** (SC202CS, OV5647, SC2336); that
   list is hardcoded in `__init__.py`.
 * **`jpeg_quality:` only applies to the hardware encoder** on the `device: jpeg`
   path, not to a UVC source that hands you pre-encoded MJPEG. (It reaches the
-  encoder since the extended-control fix — see fix 4; `set_runtime_jpeg_quality()`
+  encoder since the extended-control fix --- see fix 4; `set_runtime_jpeg_quality()`
   overrides it at runtime.)
 * The USB-UVC path is inherited from the original PR and is **not tested here**.
 
 ## License
 
 ESPHome License (GPLv3 for C++/runtime sources, MIT for the Python sources and
-everything else) — see [`LICENSE`](LICENSE) and [`NOTICE`](NOTICE).
+everything else) --- see [`LICENSE`](LICENSE) and [`NOTICE`](NOTICE).

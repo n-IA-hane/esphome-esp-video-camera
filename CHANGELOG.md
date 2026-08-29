@@ -3,7 +3,10 @@
 All notable changes to this component are documented here. Version numbers refer
 to this repository, not to the upstream pull request.
 
-## Unreleased
+## 2026.9.0, 2026-08-29
+
+Existing camera YAML remains compatible. `buffer_count` is optional and
+defaults to three capture buffers, matching the qualified P4 profiles.
 
 ### Added
 
@@ -63,7 +66,7 @@ and `cfg/sc202cs.json` are unchanged from the pull request.
 
 * **JPEG CAPTURE `S_FMT` sent a 0x0 resolution.** `esp_video` 2.2.0 validates
   `width`/`height` on the CAPTURE side of the JPEG M2M device too
-  (`jpeg_video_set_format()`: `width < MIN || height < MIN` → `EINVAL`), so the
+  (`jpeg_video_set_format()`: `width < MIN || height < MIN` -�� `EINVAL`), so the
   component failed at boot with `JPEG CAPTURE S_FMT failed: Invalid argument`.
   The negotiated capture resolution is now propagated to the CAPTURE format.
 * **Blocking capture in `loop()` tripped the task watchdog.** The blocking
@@ -79,13 +82,13 @@ and `cfg/sc202cs.json` are unchanged from the pull request.
   lazy: `esp_video_recv_element()` notifies `M2M_TRIGGER` only for
   `type == V4L2_BUF_TYPE_VIDEO_CAPTURE` (`jpeg_video_notify()`). The original
   dequeued OUTPUT first, which never starts the encode and blocks on
-  `ready_sem` forever — the actual root cause of the watchdog hang. Order is now
+  `ready_sem` forever --- the actual root cause of the watchdog hang. Order is now
   `DQBUF(CAPTURE)` (starts and awaits the encode), then `DQBUF(OUTPUT)`.
 * **Control writes used the unsupported `VIDIOC_S_CTRL`.** `esp_video`
   implements only the extended-control interface; the legacy ioctl returns
   `EINVAL`, which is why the static `jpeg_quality:` option never reached the
-  encoder. Every control write — the static option and the runtime controls
-  alike — now uses `VIDIOC_S_EXT_CTRLS` with a properly filled
+  encoder. Every control write --- the static option and the runtime controls
+  alike --- now uses `VIDIOC_S_EXT_CTRLS` with a properly filled
   `v4l2_ext_controls`, and logs its result.
 * **Black snapshots right after a start.** The AE/IPA loop needs about 10 frames
   to converge, so the first frame off a freshly started pipeline was essentially
@@ -101,7 +104,7 @@ and `cfg/sc202cs.json` are unchanged from the pull request.
   file descriptors (never from a foreign thread): `set_runtime_exposure()`,
   `set_runtime_vflip()`, `set_runtime_hflip()`, `set_runtime_jpeg_quality()`,
   `set_runtime_max_fps()`. Intended to be wired to `number` / `switch` template
-  entities — see README.
+  entities --- see README.
 * **One-shot V4L2 control enumeration** into the log on the first successful
   capture start (`VIDIOC_QUERY_EXT_CTRL` with `V4L2_CTRL_FLAG_NEXT_CTRL`), so
   the controls a given sensor actually supports are discoverable.
