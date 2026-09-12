@@ -1,5 +1,7 @@
 # esp_video_camera --- ESP32-P4 MIPI-CSI camera platform for ESPHome
 
+Current stable release: [2026.9.2](https://github.com/n-IA-hane/esphome-esp-video-camera/releases/tag/v2026.9.2).
+
 An ESPHome external component that turns an ESP32-P4 with a MIPI-CSI sensor into
 a **native ESPHome `camera` entity**: Home Assistant discovers it as a real
 camera, snapshots work, and `web_server` serves an MJPEG stream --- no go2rtc, no
@@ -127,7 +129,7 @@ restarts streaming without reallocating them or polling the main loop.
 * ESP32-P4 with a MIPI-CSI sensor supported by `esp_cam_sensor`
   (auto-detected: SC202CS, OV5647, SC2336), or a USB-UVC camera.
 * External PSRAM for the JPEG handoff copy.
-* ESP-IDF **-‰¥ 5.4** (required by `esp_video` 2.4.1).
+* ESP-IDF **>= 5.4** (required by `esp_video` 2.4.1).
 * **The `esp-idf` toolchain --- this is mandatory**, see below.
 
 ### `esp32: toolchain: esp-idf` is required
@@ -164,7 +166,7 @@ Note that the first build with this toolchain downloads the full IDF toolchain
 ```yaml
 external_components:
   # This component.
-  - source: github://n-IA-hane/esphome-esp-video-camera@v2026.9.0
+  - source: github://n-IA-hane/esphome-esp-video-camera@main
     components: [esp_video_camera]
   # The base `camera` platform is not in ESPHome yet either --- it comes from the
   # same (still unmerged) pull request.
@@ -410,7 +412,7 @@ Board-specific notes, which generalise reasonably well:
   hardcoded `reset_pin = -1` is fine.
 
 Verified working: sensor detected over SCCB, IPA tuning loaded, ISP streaming
-(AE converging), JPEG frames delivered over the ESPHome API (e.g. 800x800 -†’
+(AE converging), JPEG frames delivered over the ESPHome API (e.g. 800x800 ->
 ~21.7 KB), camera entity visible in Home Assistant, no watchdog resets.
 
 The current dependency graph uses the published `esp_video` 2.4.1 component,

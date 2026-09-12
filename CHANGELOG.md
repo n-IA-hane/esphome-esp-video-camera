@@ -1,7 +1,23 @@
 # Changelog
 
-All notable changes to this component are documented here. Version numbers refer
-to this repository, not to the upstream pull request.
+## ESPHome ESP Video Camera 2026.9.2
+
+This release identifies the camera component used by ESPHome Intercom 2026.9.2.
+
+The camera implementation is unchanged from 2026.9.1. Existing JPEG and raw-frame capture configuration remains compatible. JPEG and H.264 stay separate profiles in the Intercom project.
+
+---
+
+## ESPHome ESP Video Camera 2026.9.1
+
+This release marks the camera component used by the stable ESPHome Intercom 2026.9.1 platform.
+
+The component source is unchanged from the v2026.9.0 tag. It retains the event-driven ESP32-P4 capture pipeline, JPEG and raw-frame consumers, configurable capture buffers and hardware image processing options.
+
+Existing camera YAML remains compatible; no migration is required. JPEG and H.264 remain separate profiles in the complete Intercom configuration.
+
+[Platform release notes and update instructions](https://github.com/n-IA-hane/esphome-intercom/releases/tag/v2026.9.1)
+
 
 ## 2026.9.0, 2026-08-29
 
@@ -66,7 +82,7 @@ and `cfg/sc202cs.json` are unchanged from the pull request.
 
 * **JPEG CAPTURE `S_FMT` sent a 0x0 resolution.** `esp_video` 2.2.0 validates
   `width`/`height` on the CAPTURE side of the JPEG M2M device too
-  (`jpeg_video_set_format()`: `width < MIN || height < MIN` -†’ `EINVAL`), so the
+  (`jpeg_video_set_format()`: `width < MIN || height < MIN` -> `EINVAL`), so the
   component failed at boot with `JPEG CAPTURE S_FMT failed: Invalid argument`.
   The negotiated capture resolution is now propagated to the CAPTURE format.
 * **Blocking capture in `loop()` tripped the task watchdog.** The blocking
