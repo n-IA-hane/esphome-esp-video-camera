@@ -8,6 +8,8 @@ Maintained Intercom P4 YAMLs now use `github://Psix-anp/esphome-esp-video-camera
 
 This repository remains a compatibility mirror. New configurations should use the upstream source shown in the current [Intercom profiles](https://github.com/n-IA-hane/esphome-intercom/tree/dev/yamls).
 
+Thanks to @DunklerPhoenix and @MakaronaiVLN for sharing feedback and helping test the project.
+
 ---
 
 ## ESPHome ESP Video Camera 2026.9.2
