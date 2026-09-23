@@ -1,5 +1,7 @@
 # esp_video_camera --- ESP32-P4 MIPI-CSI camera platform for ESPHome
 
+Development preview: [2026.10.0-dev](https://github.com/n-IA-hane/esphome-esp-video-camera/releases/tag/v2026.10.0-dev).
+
 Current stable release: [2026.9.2](https://github.com/n-IA-hane/esphome-esp-video-camera/releases/tag/v2026.9.2).
 
 An ESPHome external component that turns an ESP32-P4 with a MIPI-CSI sensor into

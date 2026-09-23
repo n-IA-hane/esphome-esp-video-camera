@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026.10.0-dev: use the upstream camera component
+
+The camera component code in this preview is identical to [Psix-anp/esphome-esp-video-camera](https://github.com/Psix-anp/esphome-esp-video-camera). Our camera contributions have been merged upstream.
+
+Maintained Intercom P4 YAMLs now use `github://Psix-anp/esphome-esp-video-camera@main` directly. JPEG and H.264 profiles compile with that source. This change does not introduce a new camera implementation or change capture settings.
+
+This repository remains a compatibility mirror. New configurations should use the upstream source shown in the current [Intercom profiles](https://github.com/n-IA-hane/esphome-intercom/tree/dev/yamls).
+
+Thank you to everyone supporting the project through GitHub Sponsors, including the latest donation, and to the contributors sharing fixes and hardware feedback.
+
+---
+
 ## ESPHome ESP Video Camera 2026.9.2
 
 This release identifies the camera component used by ESPHome Intercom 2026.9.2.
