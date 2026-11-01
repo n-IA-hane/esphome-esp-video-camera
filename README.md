@@ -211,7 +211,7 @@ esp_video_camera:
 | `resolution` | `auto` | `auto`, an alias (`QVGA`/`VGA`/`480P`/`720P`/`1080P`) or `WIDTHxHEIGHT`. Best-effort: the sensor must actually support the mode, see "Sensor modes". |
 | `jpeg_quality` | `10` | 1..63 (`V4L2_CID_JPEG_COMPRESSION_QUALITY`). |
 | `rotation` | `0` | `0`, `90`, `180` or `270` degrees clockwise. Hardware PPA; MIPI-CSI JPEG path only. |
-| `max_framerate` | `10` | Programs V4L2 frame skipping when supported. If the source cannot apply it, ESPHome API frames use a software throttle while borrowed consumers retain the sensor frame rate. |
+| `max_framerate` | `10` | Hardware-JPEG devices admit frames before raw callbacks, PPA and JPEG processing, using the native V4L2 rate when available. Other paths retain device frame skipping or the legacy API throttle. |
 | `buffer_count` | `3` | Number of queued V4L2 capture buffers. Use `2` to reduce capture memory while retaining double buffering. |
 | `enable_xclk` | `false` | Generate the sensor XCLK with LEDC before init. Not needed for modules with their own crystal. |
 | `xclk_pin` | `36` | Only used when `enable_xclk: true`. |
@@ -380,10 +380,15 @@ callback delivery but do not wait for a callback already running on the capture
 task. The consumer object and any callback-owned state must remain valid until
 that in-flight callback has returned.
 
-`max_framerate` throttles only frames copied to the ESPHome camera API. Borrowed
-consumers receive every sensor frame. A JPEG consumer therefore keeps the
-hardware encoder running at the sensor rate even when no Home Assistant camera
-listener is active.
+On a hardware-JPEG device, `max_framerate` controls one shared admission
+cadence before raw callbacks, PPA and JPEG encoding. Each admitted frame can
+reach both borrowed consumers and the ESPHome camera API. Frames outside that cadence return to capture without
+rotation, encoding or an image copy. Fractional frame rates retain their phase.
+
+Dedicated raw CSI and direct JPEG/MJPEG keep their existing device cadence and
+API throttle. If the native rate is unavailable or cannot be confirmed,
+hardware-JPEG keeps the driver's available input cadence and applies the same
+shared admission cap to every consumer.
 
 Registration and activation are separate: register a stable consumer object
 once, then use `start_raw_frame_consumer()` / `stop_raw_frame_consumer()` or
