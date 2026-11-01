@@ -212,7 +212,7 @@ esp_video_camera:
 | `jpeg_quality` | `10` | 1..63 (`V4L2_CID_JPEG_COMPRESSION_QUALITY`). |
 | `rotation` | `0` | `0`, `90`, `180` or `270` degrees clockwise. Hardware PPA; MIPI-CSI JPEG path only. |
 | `max_framerate` | `10` | Hardware-JPEG devices admit frames before raw callbacks, PPA and JPEG processing, using the native V4L2 rate when available. Other paths retain device frame skipping or the legacy API throttle. |
-| `buffer_count` | `3` | Number of queued V4L2 capture buffers. Use `2` to reduce capture memory while retaining double buffering. |
+| `buffer_count` | `3` | Number of queued V4L2 capture buffers. Use `2` to reduce capture memory while retaining double buffering. An RGB565 frame needs at least `width * height * 2` bytes, plus any driver alignment. |
 | `enable_xclk` | `false` | Generate the sensor XCLK with LEDC before init. Not needed for modules with their own crystal. |
 | `xclk_pin` | `36` | Only used when `enable_xclk: true`. |
 | `xclk_frequency` | `24000000` | Only used when `enable_xclk: true`. |
@@ -382,8 +382,12 @@ that in-flight callback has returned.
 
 On a hardware-JPEG device, `max_framerate` controls one shared admission
 cadence before raw callbacks, PPA and JPEG encoding. Each admitted frame can
-reach both borrowed consumers and the ESPHome camera API. Frames outside that cadence return to capture without
-rotation, encoding or an image copy. Fractional frame rates retain their phase.
+reach both borrowed consumers and the ESPHome camera API. Frames outside that
+cadence return to capture without rotation, encoding or an image copy.
+Fractional frame rates retain their phase without a catch-up burst after a pause.
+The admission clock does not require another image buffer. Capture buffers
+share the application's memory budget with display snapshots and other media;
+reserve those workloads when choosing between two and three buffers.
 
 Dedicated raw CSI and direct JPEG/MJPEG keep their existing device cadence and
 API throttle. If the native rate is unavailable or cannot be confirmed,
