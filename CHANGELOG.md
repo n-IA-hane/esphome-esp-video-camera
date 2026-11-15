@@ -1,5 +1,24 @@
 # Changelog
 
+## Unreleased: shared hardware-JPEG frame cadence
+
+* Admit hardware-JPEG frames once, on the existing capture task, before raw
+  callbacks, PPA rotation and hardware JPEG encoding. Every consumer, including
+  the ESPHome camera API, uses that decision without a second throttle.
+* Keep the native V4L2 capture rate for this path and apply the requested
+  `max_framerate` at admission. Fractional rates, timestamp wrap, runtime rate
+  changes and resuming after a pause retain a bounded phase without catch-up
+  bursts. Failed rate negotiation still leaves the shared admission cap active.
+* Preserve dedicated raw CSI and direct JPEG/MJPEG behavior. The change adds
+  scalar cadence state and optional debug counters, with no additional image
+  buffer, task, mutex or per-rejected-frame copy.
+* Host tests exercise production methods with controlled V4L2/PPA behavior,
+  including buffer ownership and failure paths under ASan/UBSan. This records
+  software behavior, not a measured hardware FPS or CPU improvement.
+
+This development branch carries this change ahead of upstream review. The
+previous camera-source notes below describe their published versions.
+
 ## 2026.10.0-dev: use the upstream camera component
 
 The camera component code in this preview is identical to [Psix-anp/esphome-esp-video-camera](https://github.com/Psix-anp/esphome-esp-video-camera). Our camera contributions have been merged upstream.
