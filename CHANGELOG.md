@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased: official P4 dependencies
+
+* Select the official esp_video CSI correction for pre-rev3 P4 silicon and
+  remove the separate local CSI compatibility hook.
+* Use esp_video's supported custom H.264 dependency selection instead of an
+  empty component stub. Dedicated CSI, shared hardware-JPEG admission and
+  direct compressed-camera paths keep their existing responsibilities.
+
 ## Unreleased: shared hardware-JPEG frame cadence
 
 * Admit hardware-JPEG frames once, on the existing capture task, before raw

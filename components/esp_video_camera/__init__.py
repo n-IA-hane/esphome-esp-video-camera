@@ -171,24 +171,20 @@ async def to_code(config):
     # compatible versions: esp_cam_sensor (MIPI sensor drivers), esp_sccb_intf
     # (camera I2C/SCCB) and esp_ipa (ISP/IPA tuning).
     jpeg_enabled = config[CONF_DEVICE] in ("jpeg", "/dev/video10")
-    # Use the published component so its compatible esp_cam_sensor, esp_ipa
-    # and esp_h264 dependencies are resolved by the IDF component manager.
-    add_idf_component(name="espressif/esp_video", ref="2.4.1")
-    if jpeg_enabled:
-        # esp_video's manifest pulls esp_h264 on every P4 build although
-        # both its H.264 source and CMake requirement are correctly Kconfig
-        # gated. IDF local-component precedence supplies an empty dependency
-        # only for JPEG firmware; H.264 profiles resolve the real library.
-        add_extra_build_file(
-            "components/esp_h264/CMakeLists.txt",
-            Path(__file__).parent
-            / "build_stubs"
-            / "esp_h264"
-            / "CMakeLists.txt",
-        )
+    # Official CSI format selection supports the IDF 5.5.6 backport on pre-v3
+    # P4. Resolve its sibling sensor/ISP components from the same source tree.
+    add_idf_component(
+        name="espressif/esp_video",
+        repo="https://github.com/espressif/esp-video-components.git",
+        ref="79ae6117e58e0cf831c8e96820af72e877b5fb82",
+        path="esp_video",
+    )
+    # H.264 consumers declare their real codec dependency. JPEG firmware does
+    # not need the manifest's default H.264 library or a dummy component.
+    add_idf_sdkconfig_option("CONFIG_ESP_VIDEO_USE_CUSTOMIZED_ESP_H264_VERSION", True)
     if config[CONF_ENABLE_UVC]:
         # USB-UVC host driver, aligned with esp_video 2.x's own dependency.
-        add_idf_component(name="espressif/usb_host_uvc", ref="2.5.*")
+        add_idf_component(name="espressif/usb_host_uvc", ref="2.6.*")
 
     # Pipeline features. Kconfig keys verified against esp_video 2.4.
     # ENABLE_ISP_PIPELINE_CONTROLLER (default n) is what pulls in esp_ipa and
